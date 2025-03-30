@@ -266,9 +266,13 @@ export default function DoctorManagement() {
 
   // Supprimer un médecin
   const handleDelete = async (numMed) => {
+    console.log("Suppression du médecin avec le numéro :", numMed);
     try {
-      // Confirmation avant suppression
-      if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce médecin ?")) {
+      if (
+        !window.confirm(
+          `Êtes-vous sûr de vouloir supprimer le médecin ${numMed} ?`
+        )
+      ) {
         return;
       }
 
@@ -290,12 +294,13 @@ export default function DoctorManagement() {
           });
         }, 3000);
 
-        // Mise à jour immédiate du tableau
-        fetchDoctors();
+        // Rafraîchir la liste des médecins
+        await fetchDoctors();
       } else {
+        const data = await response.json();
         setErrorModal({
           open: true,
-          message: "Erreur lors de la suppression du médecin",
+          message: data.error || "Erreur lors de la suppression du médecin",
         });
       }
     } catch (error) {

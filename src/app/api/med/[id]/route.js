@@ -2,23 +2,42 @@ import pool from "@/lib/db";
 import { NextResponse } from "next/server";
 
 // DELETE: Supprimer un médecin
-export async function DELETE(req) {
+export async function DELETE(req, { params }) {
   try {
-    const { numMed } = await req.json();
+    const { id } = await params;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Numéro de médecin manquant" },
+        { status: 400 }
+      );
+    }
+
     const query = "DELETE FROM medecins WHERE numMed = ?";
-    await pool.query(query, [numMed]);
-    return NextResponse.json({ message: "Médecin supprimé avec succès" });
+    const [result] = await pool.query(query, [id]);
+
+    if (result.affectedRows === 0) {
+      return NextResponse.json(
+        { error: "Médecin introuvable" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: "Médecin supprimé avec succès" },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Erreur lors de la suppression:", error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
-// PUT: Mettre à jour un médecin
 
+// PUT: Mettre à jour un médecin
 export async function PUT(req) {
   try {
     const { numMed, nom, nbJours, tauxJournaliers } = await req.json();
 
-    // Vérifier si le médecin existe avant de le modifier
     const checkQuery =
       "SELECT COUNT(*) AS count FROM medecins WHERE numMed = ?";
     const [rows] = await pool.query(checkQuery, [numMed]);
